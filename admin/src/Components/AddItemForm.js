@@ -23,7 +23,7 @@ function AddMenuItemForm() {
     e.preventDefault();
 
     try {
-      await axios.post(" http://localhost:5000/menu", formData); // Replace with your API endpoint
+      await axios.post(" https://chatbot-for-food-delivery-system.onrender.com/menu", formData); // Replace with your API endpoint
       alert("Menu item added successfully!");
       setFormData({
         itemId: "",

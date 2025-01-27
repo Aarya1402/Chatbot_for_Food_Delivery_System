@@ -5,7 +5,7 @@ function CancelledOrders() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get(' http://localhost:5000/orders?status=Cancelled')
+    axios.get(' https://chatbot-for-food-delivery-system.onrender.com/orders?status=Cancelled')
       .then(response => setOrders(response.data))
       .catch(error => console.error(error));
   }, []);

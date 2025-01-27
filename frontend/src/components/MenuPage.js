@@ -8,7 +8,7 @@ const MenuPage = () => {
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
-        const response = await fetch("http://localhost:5000/menu");
+        const response = await fetch("https://chatbot-for-food-delivery-system.onrender.com/menu");
         const data = await response.json();
         setMenuItems(data);
       } catch (error) {

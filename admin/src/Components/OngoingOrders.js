@@ -11,7 +11,7 @@ function OngoingOrders() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(" http://localhost:5000/orders/status/Pending"); // Using the `GET /status/:status` endpoint
+      const response = await axios.get(" https://chatbot-for-food-delivery-system.onrender.com/orders/status/Pending"); // Using the `GET /status/:status` endpoint
       setOrders(response.data);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -24,7 +24,7 @@ function OngoingOrders() {
   // Handle order status update
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.put(` http://localhost:5000/orders/${orderId}`, { status: newStatus }); // Using the `PUT /:orderId` endpoint
+      await axios.put(` https://chatbot-for-food-delivery-system.onrender.com/orders/${orderId}`, { status: newStatus }); // Using the `PUT /:orderId` endpoint
       alert(`Order ${orderId} marked as ${newStatus.toLowerCase()}!`);
       fetchOrders(); // Refresh the list of orders
     } catch (err) {
