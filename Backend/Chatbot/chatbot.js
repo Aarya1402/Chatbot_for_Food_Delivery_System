@@ -9,6 +9,7 @@ let inProgressOrders = {};
 
 // Handle chatbot requests
 router.post('/', async (req, res) => {
+    console.log("Webhook request arrived");
     const payload = req.body;
     const intent = payload.queryResult.intent.displayName;
     const parameters = payload.queryResult.parameters;
