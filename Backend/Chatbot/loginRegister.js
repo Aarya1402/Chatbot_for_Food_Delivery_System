@@ -18,7 +18,7 @@ app.post('/webhook', async (req, res) => {
 
       try {
         // Call the backend register API
-        const response = await axios.post('http://localhost:5000/users', {
+        const response = await axios.post('https://chatbot-for-food-delivery-system.onrender.com/users', {
           username,
           email,
           phoneNumber,
@@ -46,7 +46,7 @@ app.post('/webhook', async (req, res) => {
 
       try {
         // Call the backend login API (assuming it's a GET or POST request)
-        const response = await axios.post('http://localhost:5000/users/login', {
+        const response = await axios.post('https://chatbot-for-food-delivery-system.onrender.com/users/login', {
           email: loginEmail,
           password: loginPassword,
         });

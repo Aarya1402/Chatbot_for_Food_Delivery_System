@@ -49,7 +49,7 @@ app.use(express.json());
 app.use('/menu', menuRoutes);
 app.use('/orders', orderRoutes);
 app.use('/users', userRoutes);
-app.use('/chatobt', chatbotRoutes);
+app.use('/webhook', chatbotRoutes);
 
 // Default route
 app.get('/', (req, res) => {
