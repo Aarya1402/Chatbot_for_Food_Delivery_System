@@ -1,0 +1,170 @@
+General Reset
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* CSS Variables for Theming */
+:root {
+  --primary-color: #007BFF;
+  --primary-hover-color: #0056b3;
+  --success-color: #28a745;
+  --success-hover-color: #218838;
+  --danger-color: #dc3545;
+  --danger-hover-color: #c82333;
+  --background-color: #f9f9f9;
+  --text-color: #333;
+  --heading-color: #444;
+  --border-color: #ddd;
+  --input-border-color: #ccc;
+  --card-background: #fff;
+  --card-border-radius: 8px;
+  --button-border-radius: 4px;
+  --button-transition: background-color 0.3s ease;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 16px;
+}
+
+/* Container Styles */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Heading Styles */
+h1, h2, h3, h4, h5 {
+  color: var(--heading-color);
+  margin-bottom: 16px;
+}
+
+/* List Styles */
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-border-radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+li img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--card-border-radius);
+  margin-left: 16px;
+}
+
+/* Input Fields */
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--button-border-radius);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Button Styles */
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--button-border-radius);
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--button-transition);
+}
+
+button:hover {
+  background-color: var(--primary-hover-color);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button.bg-green {
+  background-color: var(--success-color);
+}
+
+button.bg-green:hover {
+  background-color: var(--success-hover-color);
+}
+
+button.bg-red {
+  background-color: var(--danger-color);
+}
+
+button.bg-red:hover {
+  background-color: var(--danger-hover-color);
+}
+
+/* Card-like List Items */
+.menu-item-card {
+  display: flex;
+  align-items: flex-start;
+}
+
+.menu-item-card div {
+  flex-grow: 1;
+}
+
+.menu-item-card p {
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #555;
+}
+
+.menu-item-card .price {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+/* Form Styles */
+.form-container {
+  margin-top: 16px;
+}
+
+.form-container label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .menu-item-card {
+    flex-direction: column;
+  }
+
+  li img {
+    margin: 0 0 12px 0;
+  }
+}
+
