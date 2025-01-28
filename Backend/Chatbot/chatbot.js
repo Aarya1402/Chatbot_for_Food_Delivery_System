@@ -1,11 +1,12 @@
 const express = require('express');
+const axios = require('axios'); // For making API calls
 const router = express.Router();
-const Order = require('../Models/order'); // Order model
-const Menu = require('../Models/menu');   // Menu model
-const User = require('../Models/user');   // User model
 
 // Store in-progress orders temporarily (mimicking session behavior)
 let inProgressOrders = {};
+
+// Helper API URLs
+const API_BASE_URL = 'https://chatbot-for-food-delivery-system.onrender.com/orders'; // Update this URL based on your backend
 
 // Handle chatbot requests
 router.post('/', async (req, res) => {
@@ -16,7 +17,7 @@ router.post('/', async (req, res) => {
     const sessionId = extractSessionId(payload.queryResult.outputContexts[0].name);
 
     const intentHandlers = {
-        'new.order': newOrder, // Add new.order intent handler
+        'new.order': newOrder,
         'order.add - context: ongoing-order': addToOrder,
         'order.remove - context: ongoing-order': removeFromOrder,
         'order.complete - context: ongoing-order': completeOrder,
@@ -36,30 +37,9 @@ function extractSessionId(contextName) {
     return sessionMatch ? sessionMatch[1] : null;
 }
 
-// Helper function to save order to the database
-async function saveToDb(order) {
-    try {
-        const newOrder = new Order({
-            userId: order.userId,
-            items: order.items,
-            amount: order.totalAmount,
-            status: 'Pending',
-            payStatus: 'Unpaid',
-        });
-
-        const savedOrder = await newOrder.save();
-        return savedOrder;
-    } catch (err) {
-        console.error('Error saving order:', err);
-        return null;
-    }
-}
-
 // Handle "new.order" intent
 async function newOrder(parameters, sessionId, res) {
-    // Initialize a new order for the session
     inProgressOrders[sessionId] = {};
-
     res.json({ fulfillmentText: 'A new order has been started. What would you like to add?' });
 }
 
@@ -99,35 +79,17 @@ async function removeFromOrder(parameters, sessionId, res) {
     }
 
     const currentOrder = inProgressOrders[sessionId];
-    let removedItems = [];
-    let notFoundItems = [];
+    foodItems.forEach(item => delete currentOrder[item]);
 
-    foodItems.forEach(item => {
-        if (currentOrder[item]) {
-            removedItems.push(item);
-            delete currentOrder[item];
-        } else {
-            notFoundItems.push(item);
-        }
+    const orderSummary = Object.entries(currentOrder)
+        .map(([item, qty]) => `${qty} ${item}`)
+        .join(', ');
+
+    res.json({
+        fulfillmentText: orderSummary
+            ? `Updated order: ${orderSummary}.`
+            : 'Your order is now empty.',
     });
-
-    let responseText = '';
-    if (removedItems.length) {
-        responseText += `Removed ${removedItems.join(', ')} from your order. `;
-    }
-    if (notFoundItems.length) {
-        responseText += `These items were not in your order: ${notFoundItems.join(', ')}. `;
-    }
-    if (Object.keys(currentOrder).length === 0) {
-        responseText += 'Your order is now empty.';
-    } else {
-        const remainingOrder = Object.entries(currentOrder)
-            .map(([item, qty]) => `${qty} ${item}`)
-            .join(', ');
-        responseText += `Current order: ${remainingOrder}.`;
-    }
-
-    res.json({ fulfillmentText: responseText });
 }
 
 // Handle "complete order" intent
@@ -137,41 +99,34 @@ async function completeOrder(parameters, sessionId, res) {
     }
 
     const order = inProgressOrders[sessionId];
-    const items = await Promise.all(Object.entries(order).map(async ([itemName, qty]) => {
-        const menuItem = await Menu.findOne({ name: itemName });
-        if (!menuItem) return null;
-        return { itemId: menuItem._id, qty, total: qty * menuItem.price };
-    }));
+    const orderDetails = {
+        userId: parameters['user_id'], // Pass user ID from intent parameters
+        items: Object.entries(order).map(([name, qty]) => ({ name, qty })),
+    };
 
-    if (items.includes(null)) {
-        return res.json({ fulfillmentText: 'One or more items could not be processed. Please try again.' });
+    try {
+        const response = await axios.post(API_BASE_URL, orderDetails); // Call Create Order API
+        delete inProgressOrders[sessionId];
+        res.json({
+            fulfillmentText: `Order placed successfully! Order ID: ${response.data._id}.`,
+        });
+    } catch (error) {
+        console.error('Error completing order:', error.message);
+        res.json({ fulfillmentText: 'An error occurred while placing your order. Please try again.' });
     }
-
-    const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
-    const savedOrder = await saveToDb({ items, totalAmount });
-
-    if (!savedOrder) {
-        return res.json({ fulfillmentText: 'An error occurred while placing your order. Please try again.' });
-    }
-
-    delete inProgressOrders[sessionId];
-    res.json({
-        fulfillmentText: `Your order has been placed! Order ID: ${savedOrder._id}, Total: $${totalAmount}.`,
-    });
 }
 
 // Handle "track order" intent
 async function trackOrder(parameters, sessionId, res) {
     const orderId = parameters['order_id'];
 
-    const order = await Order.findById(orderId);
-    if (!order) {
-        return res.json({ fulfillmentText: `No order found with ID: ${orderId}` });
+    try {
+        const response = await axios.get(`${API_BASE_URL}/${orderId}/track`); // Call Track Order API
+        res.json({ fulfillmentText: `Order status: ${response.data.status}.` });
+    } catch (error) {
+        console.error('Error tracking order:', error.message);
+        res.json({ fulfillmentText: `Could not track order with ID ${orderId}. Please try again.` });
     }
-
-    res.json({
-        fulfillmentText: `Order status for ID ${orderId}: ${order.status}.`,
-    });
 }
 
 module.exports = router;
