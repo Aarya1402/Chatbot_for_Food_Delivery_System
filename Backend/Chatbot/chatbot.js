@@ -1,6 +1,9 @@
 const express = require('express');
 const axios = require('axios'); 
 const router = express.Router();
+const mongoose = require('mongoose');
+const Order = require('../Models/order'); // Adjust path as needed
+const Menu = require('../Models/menu'); // Menu model
 
 // Store in-progress orders temporarily (mimicking session behavior)
 let inProgressOrders = {};
@@ -93,28 +96,55 @@ async function removeFromOrder(parameters, sessionId, res) {
 }
 
 // Handle "complete order" intent
+
 async function completeOrder(parameters, sessionId, res) {
     if (!inProgressOrders[sessionId]) {
         return res.json({ fulfillmentText: 'No order found. Please place a new order.' });
     }
 
     const order = inProgressOrders[sessionId];
-    const orderDetails = {
-        userId: parameters['user_id'], // Pass user ID from intent parameters
-        items: Object.entries(order).map(([name, qty]) => ({ name, qty })),
-    };
 
     try {
-        const response = await axios.post(API_BASE_URL, orderDetails); // Call Create Order API
+        // Calculate total amount and prepare items
+        const items = await Promise.all(
+            Object.entries(order).map(async ([itemName, qty]) => {
+                const menuItem = await Menu.findOne({ name: itemName });
+                if (!menuItem) {
+                    throw new Error(`Item '${itemName}' not found in menu.`);
+                }
+                return {
+                    itemId: menuItem._id,
+                    qty,
+                    total: qty * menuItem.price,
+                };
+            })
+        );
+
+        const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
+
+        // Prepare order details
+        const newOrder = new Order({
+            orderId: new mongoose.Types.ObjectId().toString(), // Generate unique order ID
+            userId: parameters['user_id'], // Pass user ID from intent parameters
+            amount: totalAmount,
+            items,
+        });
+
+        // Save order to the database
+        const savedOrder = await newOrder.save();
+
+        // Clear in-progress order for the session
         delete inProgressOrders[sessionId];
+
         res.json({
-            fulfillmentText: `Order placed successfully! Order ID: ${response.data._id}.`,
+            fulfillmentText: `Order placed successfully! Order ID: ${savedOrder.orderId}, Total: $${totalAmount}.`,
         });
     } catch (error) {
         console.error('Error completing order:', error.message);
         res.json({ fulfillmentText: 'An error occurred while placing your order. Please try again.' });
     }
 }
+
 
 // Handle "track order" intent
 async function trackOrder(parameters, sessionId, res) {
