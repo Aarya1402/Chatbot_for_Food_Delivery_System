@@ -149,9 +149,11 @@ async function completeOrder(parameters, sessionId, res) {
 // Handle "track order" intent
 async function trackOrder(parameters, sessionId, res) {
     const orderId = parameters['order_id'];
-
+    console.log('Tracking order:', orderId);
     try {
         const response = await axios.get(`${API_BASE_URL}/${orderId}/track`); // Call Track Order API
+        console.log('Order status:', response);
+        console.log('Order status:', response.status);
         res.json({ fulfillmentText: `Order status: ${response.data.status}.` });
     } catch (error) {
         console.error('Error tracking order:', error.message);
