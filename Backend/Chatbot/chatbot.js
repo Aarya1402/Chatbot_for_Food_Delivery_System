@@ -16,6 +16,7 @@ router.post('/', async (req, res) => {
     const sessionId = extractSessionId(payload.queryResult.outputContexts[0].name);
 
     const intentHandlers = {
+        'new.order - context: ongoing-order': newOrder, // Add new.order intent handler
         'order.add - context: ongoing-order': addToOrder,
         'order.remove - context: ongoing-order': removeFromOrder,
         'order.complete - context: ongoing-order': completeOrder,
@@ -52,6 +53,14 @@ async function saveToDb(order) {
         console.error('Error saving order:', err);
         return null;
     }
+}
+
+// Handle "new.order" intent
+async function newOrder(parameters, sessionId, res) {
+    // Initialize a new order for the session
+    inProgressOrders[sessionId] = {};
+
+    res.json({ fulfillmentText: 'A new order has been started. What would you like to add?' });
 }
 
 // Handle "add to order" intent
