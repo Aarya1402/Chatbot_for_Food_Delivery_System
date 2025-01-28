@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     const sessionId = extractSessionId(payload.queryResult.outputContexts[0].name);
 
     const intentHandlers = {
-        'new.order - context: ongoing-order': newOrder, // Add new.order intent handler
+        'new.order': newOrder, // Add new.order intent handler
         'order.add - context: ongoing-order': addToOrder,
         'order.remove - context: ongoing-order': removeFromOrder,
         'order.complete - context: ongoing-order': completeOrder,
