@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require('uuid'); // For generating unique order IDs
 const Order = require('../Models/order'); // Adjust the path if necessary
 
 // Get all orders
@@ -38,15 +39,34 @@ exports.getOrdersByStatus = async (req, res) => {
     }
 };
 
+
 // Create a new order
 exports.createOrder = async (req, res) => {
-    const { orderId, userId, amount, status, payStatus, items } = req.body;
+    const { userId, amount, status, payStatus, items } = req.body;
+
     try {
-        const newOrder = new Order({ orderId, userId, amount, status, payStatus, items });
+        // Generate a unique order ID
+        const orderId = uuidv4(); // Generates a UUID (e.g., "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed")
+
+        // Create a new order instance
+        const newOrder = new Order({
+            orderId, // Add the generated order ID
+            userId,
+            amount,
+            status: status || 'Pending', // Default status is 'Pending'
+            payStatus: payStatus || 'Unpaid', // Default payStatus is 'Unpaid'
+            items,
+        });
+
+        // Save the order to the database
         await newOrder.save();
+
+        // Respond with success message and the created order
         res.status(201).json({ message: 'Order created successfully', order: newOrder });
     } catch (error) {
-        res.status(400).json({ message: 'Error creating order', error });
+        // Handle errors
+        console.error('Error creating order:', error);
+        res.status(400).json({ message: 'Error creating order', error: error.message });
     }
 };
 
