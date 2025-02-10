@@ -195,9 +195,8 @@ async function completeOrder(parameters, sessionId, res) {
         
         if (error.message.includes('Invalid quantity')) {
             message += 'Please specify valid quantities (minimum 1).';
-        } else if (error.message.includes('not found')) {
-            message += 'One or more items are no longer available.';
-        } else {
+        } 
+        else {
             message += 'Please check your cart and try again.';
         }
         
