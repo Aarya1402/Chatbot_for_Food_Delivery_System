@@ -136,7 +136,6 @@ async function removeFromOrder(parameters, sessionId, res) {
             : 'Your order is now empty.',
     });
 }
-
 // Handle "complete order" intent
 async function completeOrder(parameters, sessionId, res) {
     const order = inProgressOrders[sessionId];
@@ -148,61 +147,60 @@ async function completeOrder(parameters, sessionId, res) {
     }
 
     try {
-        // Fetch all menu items at once
-        const itemNames = Object.keys(order);
-        const menuItems = await Menu.find({ name: { $in: itemNames } });
+        // Fetch all menu items and create a map for quick lookup
+        const menuItems = await Menu.find({}, { itemId: 1, name: 1, price: 1 });
+        const menuMap = new Map(menuItems.map(item => [item.name.toLowerCase(), item]));
 
-        // Create a map for quick lookup
-        const menuMap = new Map(menuItems.map(item => [item.name, item]));
+        const items = [];
+        let totalAmount = 0;
 
-        const items = itemNames.map(itemName => {
+        for (const itemName in order) {
             const qty = order[itemName];
 
             if (qty < 1) {
-                throw new Error(`Invalid quantity for ${itemName}`);
+                throw new Error(`Invalid quantity for '${itemName}'. Minimum quantity is 1.`);
             }
 
-            const menuItem = menuMap.get(itemName);
+            const menuItem = menuMap.get(itemName.toLowerCase());
             if (!menuItem) {
-                throw new Error(`Item '${itemName}' not found in menu.`);
+                throw new Error(`Item '${itemName}' not found in the menu.`);
             }
 
-            return {
-                itemId: menuItem._id,
+            const total = qty * menuItem.price;
+            items.push({
+                itemId: menuItem.itemId,
                 qty,
-                total: qty * menuItem.price,
-            };
-        });
-
-        const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
-
-        if (totalAmount <= 0) {
-            throw new Error('Invalid order total');
+                total
+            });
+            totalAmount += total;
         }
 
-        // Save order
+        if (totalAmount <= 0) {
+            throw new Error('Invalid order total.');
+        }
+
+        // Save the order
         const newOrder = new Order({
             orderId: new mongoose.Types.ObjectId().toString(),
-            // userId: parameters['user_id'],
             amount: totalAmount,
             items,
         });
 
-        const savedOrder = await newOrder.save();
+        await newOrder.save();
 
-        // Clear session order
+        // Clear session order after completion
         delete inProgressOrders[sessionId];
 
         res.json({
-            fulfillmentText: `Order placed successfully! 🎉 Order ID: ${savedOrder.orderId}, Total: ₹${totalAmount}.`,
+            fulfillmentText: `✅ Order placed successfully! 🎉 Order ID: ${newOrder.orderId}, Total: ₹${totalAmount}.`
         });
     } catch (error) {
         console.error('Order completion error:', error.message);
-        let message = 'Failed to place order. ';
+        let message = '❌ Failed to place order. ';
 
         if (error.message.includes('Invalid quantity')) {
             message += 'Please specify valid quantities (minimum 1).';
-        } else if (error.message.includes('not found in menu')) {
+        } else if (error.message.includes('not found in the menu')) {
             message += 'Some items are unavailable. Please review your cart.';
         } else {
             message += 'Please check your cart and try again.';
@@ -211,6 +209,7 @@ async function completeOrder(parameters, sessionId, res) {
         res.json({ fulfillmentText: message });
     }
 }
+
 
 // Handle "track order" intent
 async function trackOrder(parameters, sessionId, res) {
