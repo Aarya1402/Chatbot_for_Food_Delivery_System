@@ -60,18 +60,55 @@ async function addToOrder(parameters, sessionId, res) {
         return acc;
     }, {});
 
-    if (inProgressOrders[sessionId]) {
-        Object.assign(inProgressOrders[sessionId], foodDict);
-    } else {
-        inProgressOrders[sessionId] = foodDict;
+    // Fetch the current menu items from the database
+    let menuItems;
+    try {
+        const response = await fetch('https://chatbot-for-food-delivery-system.onrender.com/menu/');
+        menuItems = await response.json();
+    } catch (error) {
+        console.error('Error fetching menu:', error);
+        return res.json({ fulfillmentText: 'Sorry, I am unable to access the menu at the moment. Please try again later.' });
     }
 
-    const orderSummary = Object.entries(inProgressOrders[sessionId])
-        .map(([item, qty]) => `${qty} ${item}`)
-        .join(', ');
+    const availableItems = {};
+    const unavailableItems = [];
 
-    res.json({ fulfillmentText: `So far you have: ${orderSummary}. Do you need anything else?` });
+    // Check each requested item against the menu
+    for (const [item, qty] of Object.entries(foodDict)) {
+        const menuItem = menuItems.find(menuItem => menuItem.name.toLowerCase() === item.toLowerCase());
+        if (menuItem) {
+            availableItems[item] = qty;
+        } else {
+            unavailableItems.push(item);
+        }
+    }
+
+    // Update the in-progress order
+    if (inProgressOrders[sessionId]) {
+        Object.assign(inProgressOrders[sessionId], availableItems);
+    } else {
+        inProgressOrders[sessionId] = availableItems;
+    }
+
+    // Construct the response message
+    let responseText = '';
+
+    if (Object.keys(availableItems).length > 0) {
+        const orderSummary = Object.entries(inProgressOrders[sessionId])
+            .map(([item, qty]) => `${qty} ${item}`)
+            .join(', ');
+        responseText += `So far you have: ${orderSummary}. `;
+    }
+
+    if (unavailableItems.length > 0) {
+        responseText += `However, the following items are not available in our menu: ${unavailableItems.join(', ')}. `;
+    }
+
+    responseText += 'Do you need anything else?';
+
+    res.json({ fulfillmentText: responseText });
 }
+
 
 // Handle "remove from order" intent
 async function removeFromOrder(parameters, sessionId, res) {
