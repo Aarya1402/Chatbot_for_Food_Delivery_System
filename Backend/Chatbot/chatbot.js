@@ -47,8 +47,11 @@ async function newOrder(parameters, sessionId, res) {
 }
 
 // Handle "add to order" intent
+const fetch = require('node-fetch'); // Ensure fetch is available
+
+// Handle "add to order" intent
 async function addToOrder(parameters, sessionId, res) {
-    const foodItems = parameters['food-item'];
+    const foodItems = parameters['food-item'].map(item => item.toLowerCase());
     const quantities = parameters['number'];
 
     if (foodItems.length !== quantities.length) {
@@ -70,13 +73,15 @@ async function addToOrder(parameters, sessionId, res) {
         return res.json({ fulfillmentText: 'Sorry, I am unable to access the menu at the moment. Please try again later.' });
     }
 
+    // Extract available item names from the menu
+    const availableMenuItems = menuItems.map(item => item.name.toLowerCase());
+
     const availableItems = {};
     const unavailableItems = [];
 
     // Check each requested item against the menu
     for (const [item, qty] of Object.entries(foodDict)) {
-        const menuItem = menuItems.find(menuItem => menuItem.name.toLowerCase() === item.toLowerCase());
-        if (menuItem) {
+        if (availableMenuItems.includes(item)) {
             availableItems[item] = qty;
         } else {
             unavailableItems.push(item);
@@ -84,11 +89,10 @@ async function addToOrder(parameters, sessionId, res) {
     }
 
     // Update the in-progress order
-    if (inProgressOrders[sessionId]) {
-        Object.assign(inProgressOrders[sessionId], availableItems);
-    } else {
-        inProgressOrders[sessionId] = availableItems;
+    if (!inProgressOrders[sessionId]) {
+        inProgressOrders[sessionId] = {};
     }
+    Object.assign(inProgressOrders[sessionId], availableItems);
 
     // Construct the response message
     let responseText = '';
@@ -101,13 +105,14 @@ async function addToOrder(parameters, sessionId, res) {
     }
 
     if (unavailableItems.length > 0) {
-        responseText += `However, the following items are not available in our menu: ${unavailableItems.join(', ')}. `;
+        responseText += `However, the following items are not available on our menu: ${unavailableItems.join(', ')}. `;
     }
 
-    responseText += 'Do you need anything else?';
+    responseText += 'Would you like to add anything else to your order?';
 
     res.json({ fulfillmentText: responseText });
 }
+
 
 
 // Handle "remove from order" intent
