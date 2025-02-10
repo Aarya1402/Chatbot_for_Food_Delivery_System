@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios'); 
+const axios = require('axios');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Order = require('../Models/order'); // Adjust path as needed
@@ -154,7 +154,7 @@ async function trackOrder(parameters, sessionId, res) {
         const response = await axios.get(`${API_BASE_URL}/${orderId}/track`); // Call Track Order API
         console.log('Order status:', response);
         console.log('Order status:', response.status);
-        res.json({ fulfillmentText: `Order status: ${response.data.status}.` });
+        res.json({ fulfillmentText: `Order status: ${response.data.order.status}.` });
     } catch (error) {
         console.error('Error tracking order:', error.message);
         res.json({ fulfillmentText: `Could not track order with ID ${orderId}. Please try again.` });
