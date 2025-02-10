@@ -138,10 +138,11 @@ async function removeFromOrder(parameters, sessionId, res) {
 }
 
 // Handle "complete order" intent
-
 async function completeOrder(parameters, sessionId, res) {
-    if (!inProgressOrders[sessionId]) {
-        return res.json({ fulfillmentText: 'No order found. Please place a new order.' });
+    if (!inProgressOrders[sessionId] || Object.keys(inProgressOrders[sessionId]).length === 0) {
+        return res.json({ 
+            fulfillmentText: 'Your cart is empty. Please add items before completing the order.' 
+        });
     }
 
     const order = inProgressOrders[sessionId];
@@ -150,10 +151,15 @@ async function completeOrder(parameters, sessionId, res) {
         // Calculate total amount and prepare items
         const items = await Promise.all(
             Object.entries(order).map(async ([itemName, qty]) => {
+                if (qty < 1) {
+                    throw new Error(`Invalid quantity for ${itemName}`);
+                }
+                
                 const menuItem = await Menu.findOne({ name: itemName });
                 if (!menuItem) {
                     throw new Error(`Item '${itemName}' not found in menu.`);
                 }
+                
                 return {
                     itemId: menuItem._id,
                     qty,
@@ -164,30 +170,40 @@ async function completeOrder(parameters, sessionId, res) {
 
         const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
 
+        // Additional validation
+        if (totalAmount <= 0) {
+            throw new Error('Invalid order total');
+        }
+
         // Prepare order details
         const newOrder = new Order({
-            orderId: new mongoose.Types.ObjectId().toString(), // Generate unique order ID
-            userId: parameters['user_id'], // Pass user ID from intent parameters
+            orderId: new mongoose.Types.ObjectId().toString(),
+            userId: parameters['user_id'],
             amount: totalAmount,
             items,
         });
 
-        // Save order to the database
         const savedOrder = await newOrder.save();
-
-        // Clear in-progress order for the session
         delete inProgressOrders[sessionId];
 
         res.json({
-            fulfillmentText: `Order placed successfully! Order ID: ${savedOrder.orderId}, Total: $${totalAmount}.`,
+            fulfillmentText: `Order placed successfully! 🎉 Order ID: ${savedOrder.orderId}, Total: ₹${totalAmount}.`,
         });
     } catch (error) {
-        console.error('Error completing order:', error.message);
-        res.json({ fulfillmentText: 'An error occurred while placing your order. Please try again.' });
+        console.error('Order completion error:', error.message);
+        let message = 'Failed to place order. ';
+        
+        if (error.message.includes('Invalid quantity')) {
+            message += 'Please specify valid quantities (minimum 1).';
+        } else if (error.message.includes('not found')) {
+            message += 'One or more items are no longer available.';
+        } else {
+            message += 'Please check your cart and try again.';
+        }
+        
+        res.json({ fulfillmentText: message });
     }
 }
-
-
 // Handle "track order" intent
 async function trackOrder(parameters, sessionId, res) {
     const orderId = parameters['order_id'];
