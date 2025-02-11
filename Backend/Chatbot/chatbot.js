@@ -124,6 +124,7 @@ async function removeFromOrder(parameters, sessionId, res) {
     }
 
     const currentOrder = inProgressOrders[sessionId];
+    console.log('Current order:', currentOrder);
     foodItems.forEach(item => delete currentOrder[item]);
 
     const orderSummary = Object.entries(currentOrder)
