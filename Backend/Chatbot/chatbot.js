@@ -117,20 +117,33 @@ async function addToOrder(parameters, sessionId, res) {
 
 // Handle "remove from order" intent
 async function removeFromOrder(parameters, sessionId, res) {
-    const foodItems = parameters['food-item'];
+    // Ensure foodItems is an array and normalize item names
+    let foodItems = parameters['food-item'];
+    if (!Array.isArray(foodItems)) {
+        foodItems = [foodItems];
+    }
+    foodItems = foodItems.map(item => item.trim().toLowerCase());
 
     if (!inProgressOrders[sessionId]) {
         return res.json({ fulfillmentText: 'No order found. Please place a new order.' });
     }
 
     const currentOrder = inProgressOrders[sessionId];
-    console.log('Current order:', currentOrder);
-    foodItems.forEach(item => delete currentOrder[item]);
+    console.log('Current order before removal:', currentOrder);
+
+    // Remove each item from the order
+    foodItems.forEach(item => {
+        if (currentOrder.hasOwnProperty(item)) {
+            delete currentOrder[item];
+        }
+    });
+
+    console.log('Current order after removal:', currentOrder);
 
     const orderSummary = Object.entries(currentOrder)
         .map(([item, qty]) => `${qty} ${item}`)
         .join(', ');
-
+    
     res.json({
         fulfillmentText: orderSummary
             ? `Updated order: ${orderSummary}.`
