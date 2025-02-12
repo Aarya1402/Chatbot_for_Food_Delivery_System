@@ -147,7 +147,7 @@ async function removeFromOrder(parameters, sessionId, res) {
     const orderSummary = Object.entries(currentOrder)
         .map(([item, qty]) => `${qty} ${item}`)
         .join(', ');
-    
+
     res.json({
         fulfillmentText: orderSummary
             ? `Updated order: ${orderSummary}.`
@@ -159,8 +159,8 @@ async function completeOrder(parameters, sessionId, res) {
     const order = inProgressOrders[sessionId];
 
     if (!order || Object.keys(order).length === 0) {
-        return res.json({ 
-            fulfillmentText: 'Your cart is empty. Please add items before completing the order.' 
+        return res.json({
+            fulfillmentText: 'Your cart is empty. Please add items before completing the order.'
         });
     }
 
