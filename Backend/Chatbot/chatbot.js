@@ -114,31 +114,35 @@ async function addToOrder(parameters, sessionId, res) {
 }
 
 
-
-// Handle "remove from order" intent
 async function removeFromOrder(parameters, sessionId, res) {
-    // Ensure foodItems is an array and normalize item names
+    // Extract items and quantities to remove
     let foodItems = parameters['food-item'];
-    if (!Array.isArray(foodItems)) {
-        foodItems = [foodItems];
-    }
+    let quantities = parameters['number']; // Ensure this parameter is captured in Dialogflow
+
+    // Normalize input to arrays
+    if (!Array.isArray(foodItems)) foodItems = [foodItems];
+    if (!Array.isArray(quantities)) quantities = [quantities];
+
+    // Default to removing 1 if quantity not specified
     foodItems = foodItems.map(item => item.trim().toLowerCase());
+    quantities = quantities.map(qty => Math.abs(parseInt(qty)) || 1);
 
     if (!inProgressOrders[sessionId]) {
         return res.json({ fulfillmentText: 'No order found. Please place a new order.' });
     }
 
     const currentOrder = inProgressOrders[sessionId];
-    console.log('Current order before removal:', currentOrder);
 
-    // Remove each item from the order
-    foodItems.forEach(item => {
-        if (currentOrder.hasOwnProperty(item)) {
-            delete currentOrder[item];
+    // Process each item with its quantity
+    foodItems.forEach((item, index) => {
+        const qtyToRemove = quantities[index] || 1;
+        if (currentOrder[item] && currentOrder[item] > 0) {
+            currentOrder[item] -= qtyToRemove;
+            if (currentOrder[item] <= 0) {
+                delete currentOrder[item];
+            }
         }
     });
-
-    console.log('Current order after removal:', currentOrder);
 
     const orderSummary = Object.entries(currentOrder)
         .map(([item, qty]) => `${qty} ${item}`)
