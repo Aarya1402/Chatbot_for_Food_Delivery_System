@@ -73,12 +73,35 @@ exports.createOrder = async (req, res) => {
 // Update an order
 exports.updateOrder = async (req, res) => {
     const { orderId } = req.params;
-    const updates = req.body;
+    const { items } = req.body; // Expecting an array of items with quantity changes
+
     try {
-        const updatedOrder = await Order.findOneAndUpdate({ orderId }, updates, { new: true, runValidators: true });
-        if (!updatedOrder) {
+        const order = await Order.findOne({ orderId });
+        if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
+
+        // Convert current order items to a Map for easy quantity updates
+        const itemMap = new Map(order.items.map(item => [item.name, item.quantity]));
+
+        items.forEach(({ name, quantity }) => {
+            if (itemMap.has(name)) {
+                let newQuantity = itemMap.get(name) + quantity;
+                if (newQuantity > 0) {
+                    itemMap.set(name, newQuantity);
+                } else {
+                    itemMap.delete(name); // Remove item if quantity reaches 0
+                }
+            } else if (quantity > 0) {
+                itemMap.set(name, quantity);
+            }
+        });
+
+        // Convert updated map back to array
+        order.items = Array.from(itemMap, ([name, quantity]) => ({ name, quantity }));
+
+        const updatedOrder = await order.save();
+
         res.status(200).json({ message: 'Order updated successfully', order: updatedOrder });
     } catch (error) {
         res.status(400).json({ message: 'Error updating order', error });
