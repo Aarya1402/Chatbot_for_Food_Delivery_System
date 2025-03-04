@@ -117,7 +117,7 @@ async function addToOrder(parameters, sessionId, res) {
 async function removeFromOrder(parameters, sessionId, res) {
     // Extract items and quantities to remove
     let foodItems = parameters['food-item'];
-    let quantities = parameters['number']; // Ensure this parameter is captured in Dialogflow
+    let quantities = parameters['qty']; // Ensure this parameter is captured in Dialogflow
 
     // Normalize input to arrays
     if (!Array.isArray(foodItems)) foodItems = [foodItems];
