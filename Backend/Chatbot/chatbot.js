@@ -267,12 +267,6 @@ function resetContext(sessionId) {
     ];
 }
 
-// Function to reset the context
-function resetContext(sessionId) {
-    // Clear session data or reset variables as needed
-    console.log(`Resetting context for session: ${sessionId}`);
-    // Example: If using an object to store session data
-    sessionData[sessionId] = {}; // Reset session-specific data
-}
+
 
 module.exports = router;
