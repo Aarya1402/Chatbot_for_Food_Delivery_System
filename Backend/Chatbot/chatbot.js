@@ -88,16 +88,24 @@ async function addToOrder(parameters, sessionId, res) {
         }
     }
 
-    // Update the in-progress order
+    // Initialize order if it doesn't exist
     if (!inProgressOrders[sessionId]) {
         inProgressOrders[sessionId] = {};
     }
-    Object.assign(inProgressOrders[sessionId], availableItems);
+
+    // Update quantities (add new ones or increase existing ones)
+    for (const [item, qty] of Object.entries(availableItems)) {
+        if (inProgressOrders[sessionId][item]) {
+            inProgressOrders[sessionId][item] += qty;  // ✅ Increment existing quantity
+        } else {
+            inProgressOrders[sessionId][item] = qty;   // ✅ Add new item
+        }
+    }
 
     // Construct the response message
     let responseText = '';
 
-    if (Object.keys(availableItems).length > 0) {
+    if (Object.keys(inProgressOrders[sessionId]).length > 0) {
         const orderSummary = Object.entries(inProgressOrders[sessionId])
             .map(([item, qty]) => `${qty} ${item}`)
             .join(', ');
@@ -112,6 +120,7 @@ async function addToOrder(parameters, sessionId, res) {
 
     res.json({ fulfillmentText: responseText });
 }
+
 
 
 async function removeFromOrder(parameters, sessionId, res) {
