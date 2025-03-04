@@ -58,10 +58,18 @@ async function addToOrder(parameters, sessionId, res) {
         return res.json({ fulfillmentText: 'Please specify food items and quantities clearly.' });
     }
 
-    const foodDict = foodItems.reduce((acc, item, idx) => {
-        acc[item] = quantities[idx];
-        return acc;
-    }, {});
+    // Create a dictionary of requested items with their accumulated quantities
+    const foodDict = {};
+    for (let i = 0; i < foodItems.length; i++) {
+        const item = foodItems[i];
+        const qty = quantities[i];
+
+        if (foodDict[item]) {
+            foodDict[item] += qty;  // ✅ Accumulate multiple occurrences in one prompt
+        } else {
+            foodDict[item] = qty;
+        }
+    }
 
     // Fetch the current menu items from the database
     let menuItems;
@@ -93,12 +101,12 @@ async function addToOrder(parameters, sessionId, res) {
         inProgressOrders[sessionId] = {};
     }
 
-    // Update quantities (add new ones or increase existing ones)
+    // Update the order (add new or increase existing quantities)
     for (const [item, qty] of Object.entries(availableItems)) {
         if (inProgressOrders[sessionId][item]) {
-            inProgressOrders[sessionId][item] += qty;  // ✅ Increment existing quantity
+            inProgressOrders[sessionId][item] += qty;  // ✅ Accumulate properly
         } else {
-            inProgressOrders[sessionId][item] = qty;   // ✅ Add new item
+            inProgressOrders[sessionId][item] = qty;
         }
     }
 
@@ -118,8 +126,11 @@ async function addToOrder(parameters, sessionId, res) {
 
     responseText += 'Would you like to add anything else to your order?';
 
+    console.log(`Updated order for session ${sessionId}:`, inProgressOrders[sessionId]); // ✅ Debugging info
+
     res.json({ fulfillmentText: responseText });
 }
+
 
 
 
