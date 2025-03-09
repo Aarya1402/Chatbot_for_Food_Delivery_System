@@ -47,6 +47,7 @@ const MenuPage = () => {
 
         {/* Right Section: Chatbot */}
         <aside className="chat-container">
+        
           <iframe
             className="chat-bot"
             allow="microphone;"
