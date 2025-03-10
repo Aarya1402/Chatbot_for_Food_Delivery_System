@@ -1,19 +1,26 @@
 import React from 'react';
 import './Navbar.css';
+
 function Navbar({ setActivePage }) {
   return (
-    <nav className="p-4 bg-gray-800 text-white">
-      <ul className="flex space-x-4">
+    <nav className="navbar">
+      <a href="#" className="navbar-brand">Admin Panel</a>
+      <ul className="navbar-nav">
         <li className="cursor-pointer" onClick={() => setActivePage('menu')}>
-          Menu Items
+          <a href="#">Menu Items</a>
         </li>
         <li className="cursor-pointer" onClick={() => setActivePage('add-item')}>
-          Add Item
+          <a href="#">Add Item</a>
         </li>
         <li className="cursor-pointer" onClick={() => setActivePage('orders')}>
-          Orders
+          <a href="#">Orders</a>
         </li>
       </ul>
+      <div className="navbar-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </nav>
   );
 }

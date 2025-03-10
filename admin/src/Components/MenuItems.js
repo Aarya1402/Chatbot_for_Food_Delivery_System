@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import '../App.css'; // Ensure you import the CSS file
 
 function MenuItems() {
   const [menuItems, setMenuItems] = useState([]); // State to store menu items
   const [editingItem, setEditingItem] = useState(null); // State to track which item is being edited
+  const [expandedDescriptions, setExpandedDescriptions] = useState({}); // State to track expanded descriptions
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -66,35 +68,74 @@ function MenuItems() {
       });
   };
 
+  // Toggle description expansion
+  const toggleDescription = (itemId) => {
+    setExpandedDescriptions((prevState) => ({
+      ...prevState,
+      [itemId]: !prevState[itemId],
+    }));
+  };
+
+  // Truncate description to 30 characters
+  const truncateDescription = (description) => {
+    if (!description) {
+      return '';
+    }
+    if (description.length > 30) {
+      return description.slice(0, 30) + '...';
+    }
+    return description;
+  };
+
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold">Menu Items</h2>
-      <ul>
+    <div className="menu-items-container">
+      <h2 className="text-xl font-bold mb-4">Menu Items</h2>
+      <div className="menu-items-grid">
         {menuItems.map((item) => (
-          <li key={item.itemId} className="border-b py-2">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold">{item.name}</p>
-                <p>{item.description}</p>
-                <p>Price: ₹{item.price}</p>
-                <p>Category: {item.category}</p>
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-32 h-32 object-cover mt-2"
-                  />
+          <div key={item.itemId} className="menu-item-card">
+            <div className="menu-item-content">
+              <h3 className="font-semibold">{item.name}</h3>
+              <p>
+                {expandedDescriptions[item.itemId]
+                  ? item.description
+                  : truncateDescription(item.description)}
+                {item.description.length > 30 && (
+                  <span
+                    className="text-blue-500 cursor-pointer"
+                    onClick={() => toggleDescription(item.itemId)}
+                  >
+                    {expandedDescriptions[item.itemId] ? ' Less' : ' More'}
+                  </span>
                 )}
-              </div>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={() => handleEditClick(item)}
-              >
-                Edit
-              </button>
+              </p>
+              <p>Price: ₹{item.price}</p>
+              <p>Category: {item.category}</p>
+
+{item.imageUrl && (
+  <div className="mb-10">
+    <img
+      src={item.imageUrl}
+      alt={item.name}
+      className="menu-item-image rounded-lg"
+      style={{ width: "300px", height: "180px", objectFit: "cover" }}
+    />
+  </div>
+)}
+
+
+
+              <div className="mt-10">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded mt-7"
+                  onClick={() => handleEditClick(item)}
+                >
+                  Edit
+                </button>
+                </div>
+
             </div>
             {editingItem === item.itemId && (
-              <div className="mt-4">
+              <div className="edit-form mt-4">
                 <input
                   type="text"
                   name="name"
@@ -142,9 +183,9 @@ function MenuItems() {
                 </button>
               </div>
             )}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

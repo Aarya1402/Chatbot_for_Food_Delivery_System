@@ -46,12 +46,35 @@ function OngoingOrders({ onOrderUpdate }) {
               <span className="font-semibold">Order #{order.orderId}</span> - ₹{order.amount.toFixed(2)}
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-green-500 text-white" onClick={() => updateOrderStatus(order.orderId, "Completed")}>
-                Complete
-              </button>
-              <button className="px-4 py-2 bg-red-500 text-white" onClick={() => updateOrderStatus(order.orderId, "Cancelled")}>
-                Cancel
-              </button>
+            <div className="flex gap-x-4 my-2">
+            <div className="flex space-x-4 my-2">
+            <div className="flex gap-x-4 my-2">
+            <div className="flex items-center space-x-4 my-2">
+ 
+    <button 
+      className="px-4 py-2 bg-green-500 text-white"
+      onClick={() => updateOrderStatus(order.orderId, "Completed")}
+    >
+      Complete
+    </button>
+    
+        <button 
+      className="px-4 py-2 bg-red-500 text-white"
+      onClick={() => updateOrderStatus(order.orderId, "Cancelled")}
+    >
+      Cancel
+    </button>
+ 
+</div>
+
+   
+</div>
+
+
+</div>
+
+</div>
+
             </div>
           </li>
         ))}
