@@ -15,6 +15,10 @@ function Navbar({ setActivePage }) {
         <li className="cursor-pointer" onClick={() => setActivePage('orders')}>
           <a href="#">Orders</a>
         </li>
+        <li className="cursor-pointer" onClick={() => setActivePage('analytics')}>
+  <a href="#">Analytics</a>
+</li>
+
       </ul>
       <div className="navbar-toggle">
         <span></span>
