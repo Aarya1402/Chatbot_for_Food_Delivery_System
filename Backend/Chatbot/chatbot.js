@@ -230,7 +230,7 @@ async function completeOrder(parameters, sessionId, res) {
         delete inProgressOrders[sessionId];
 
         res.json({
-            fulfillmentText: `✅ Order placed successfully! 🎉 Order ID: ${newOrder.orderId}, Total: ₹${totalAmount}.`
+            fulfillmentText: `✅ Order placed successfully! 🎉 Order ID: ${newOrder.orderId}, Total: ₹${totalAmount} which you can pay at the time of delivery.`
         });
     } catch (error) {
         console.error('Order completion error:', error.message);
