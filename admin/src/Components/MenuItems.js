@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../App.css'; // Import your CSS file
+import '../App.css'; // Make sure App.css is present or adjust the path
 
 function MenuItems() {
   const [menuItems, setMenuItems] = useState([]);
@@ -13,9 +13,8 @@ function MenuItems() {
     category: '',
     imageUrl: '',
   });
-  const [successMessage, setSuccessMessage] = useState(''); // ✅ New: to show update success message
+  const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch menu items on component mount
   useEffect(() => {
     axios
       .get('https://chatbot-for-food-delivery-system.onrender.com/menu')
@@ -23,7 +22,6 @@ function MenuItems() {
       .catch((error) => console.error('Error fetching menu items:', error));
   }, []);
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -32,7 +30,6 @@ function MenuItems() {
     }));
   };
 
-  // Handle clicking Edit button
   const handleEditClick = (item) => {
     setEditingItem(item.itemId);
     setFormData({
@@ -44,24 +41,30 @@ function MenuItems() {
     });
   };
 
-  // Handle updating the item
+  const handleDeleteItem = (itemId) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      axios
+        .delete(`https://chatbot-for-food-delivery-system.onrender.com/menu/${itemId}`)
+        .then(() => {
+          setMenuItems((prevItems) => prevItems.filter((item) => item.itemId !== itemId));
+        })
+        .catch((error) => {
+          console.error('Error deleting menu item:', error);
+        });
+    }
+  };
+
   const handleUpdateItem = () => {
-    console.log('Updating item:', formData, editingItem);
     axios
       .put(`https://chatbot-for-food-delivery-system.onrender.com/menu/${editingItem}`, formData)
       .then((response) => {
         setMenuItems((prevItems) =>
           prevItems.map((item) =>
-            item.itemId === editingItem
-              ? { ...item, ...formData } // ✅ Merge old item and updated fields
-              : item
+            item.itemId === editingItem ? { ...item, ...formData } : item
           )
         );
-
-        setSuccessMessage('Item updated successfully!'); // ✅ Show success message
-        setTimeout(() => setSuccessMessage(''), 3000); // Hide after 3 seconds
-
-        // Reset form
+        setSuccessMessage('Item updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
         setEditingItem(null);
         setFormData({
           name: '',
@@ -76,7 +79,6 @@ function MenuItems() {
       });
   };
 
-  // Toggle description expansion
   const toggleDescription = (itemId) => {
     setExpandedDescriptions((prevState) => ({
       ...prevState,
@@ -84,20 +86,16 @@ function MenuItems() {
     }));
   };
 
-  // Truncate long descriptions
   const truncateDescription = (description) => {
     if (!description) return '';
-    if (description.length > 30) {
-      return description.slice(0, 30) + '...';
-    }
-    return description;
+    return description.length > 30 ? description.slice(0, 30) + '...' : description;
   };
 
   return (
     <div className="menu-items-container">
       <h2 className="text-xl font-bold mb-4">Menu Items</h2>
 
-      {successMessage && ( // ✅ Show success message if any
+      {successMessage && (
         <div className="bg-green-200 text-green-800 p-2 rounded mb-4">
           {successMessage}
         </div>
@@ -135,17 +133,26 @@ function MenuItems() {
                 </div>
               )}
 
-              <div className="mt-10">
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded mt-7"
-                  onClick={() => handleEditClick(item)}
-                >
-                  Edit
-                </button>
-              </div>
+              {/* Action Buttons - Only show Edit/Delete when not editing */}
+              {editingItem !== item.itemId && (
+                <div className="mt-10 flex">
+                  <button
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-8"
+                    onClick={() => handleEditClick(item)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                    onClick={() => handleDeleteItem(item.itemId)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* If editing, show edit form */}
+            {/* Edit Form */}
             {editingItem === item.itemId && (
               <div className="edit-form mt-4">
                 <input
@@ -187,12 +194,22 @@ function MenuItems() {
                   placeholder="Image URL"
                   className="block mb-2 p-2 border rounded w-full"
                 />
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded mt-2"
-                  onClick={handleUpdateItem}
-                >
-                  Update Item
-                </button>
+                
+                {/* Update and Cancel buttons with explicit margin instead of flex gap */}
+                <div className="mt-4 flex">
+                  <button
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mr-8"
+                    onClick={handleUpdateItem}
+                  >
+                    Update Item
+                  </button>
+                  <button
+                    className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
+                    onClick={() => setEditingItem(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>

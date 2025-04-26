@@ -23,7 +23,7 @@ function OngoingOrders({ onOrderUpdate }) {
     try {
       console.log(`Updating order ${orderId} to ${newStatus}`);
       // Update order status in the backend
-      await axios.put(`http://chatbot-for-food-delivery-system.onrender.com/orders/${orderId}/status`, { status: newStatus });
+      await axios.put(`https://chatbot-for-food-delivery-system.onrender.com/orders/${orderId}/status`, { status: newStatus });
       alert(`Order ${orderId} marked as ${newStatus.toLowerCase()}!`);
       fetchOrders();
       onOrderUpdate(); // Trigger refresh in parent
