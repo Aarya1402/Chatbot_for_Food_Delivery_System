@@ -16,6 +16,8 @@ router.post('/', orderController.createOrder);
 
 // Update an order
 router.put('/:orderId', orderController.updateOrder);
+router.put('/:orderId/status', orderController.updateOrderStatus);
+
 
 // Track an order by ID
 router.get('/:orderId/track', orderController.trackOrder);

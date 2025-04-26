@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../App.css'; // Ensure you import the CSS file
+import '../App.css'; // Import your CSS file
 
 function MenuItems() {
-  const [menuItems, setMenuItems] = useState([]); // State to store menu items
-  const [editingItem, setEditingItem] = useState(null); // State to track which item is being edited
-  const [expandedDescriptions, setExpandedDescriptions] = useState({}); // State to track expanded descriptions
+  const [menuItems, setMenuItems] = useState([]);
+  const [editingItem, setEditingItem] = useState(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -13,8 +13,9 @@ function MenuItems() {
     category: '',
     imageUrl: '',
   });
+  const [successMessage, setSuccessMessage] = useState(''); // ✅ New: to show update success message
 
-  // Fetch all menu items on component mount
+  // Fetch menu items on component mount
   useEffect(() => {
     axios
       .get('https://chatbot-for-food-delivery-system.onrender.com/menu')
@@ -31,29 +32,36 @@ function MenuItems() {
     }));
   };
 
-  // Handle editing a menu item
+  // Handle clicking Edit button
   const handleEditClick = (item) => {
-    setEditingItem(item.itemId); // Set the itemId of the item being edited
+    setEditingItem(item.itemId);
     setFormData({
       name: item.name,
       description: item.description,
       price: item.price,
       category: item.category,
-      imageUrl: item.imageUrl || '', // Handle missing image URL
+      imageUrl: item.imageUrl || '',
     });
   };
 
-  // Handle updating a menu item
+  // Handle updating the item
   const handleUpdateItem = () => {
+    console.log('Updating item:', formData, editingItem);
     axios
       .put(`https://chatbot-for-food-delivery-system.onrender.com/menu/${editingItem}`, formData)
       .then((response) => {
-        // Update the menu items state with the updated item
         setMenuItems((prevItems) =>
-          prevItems.map((item) => (item.itemId === editingItem ? response.data : item))
+          prevItems.map((item) =>
+            item.itemId === editingItem
+              ? { ...item, ...formData } // ✅ Merge old item and updated fields
+              : item
+          )
         );
 
-        // Reset the editing state and form data
+        setSuccessMessage('Item updated successfully!'); // ✅ Show success message
+        setTimeout(() => setSuccessMessage(''), 3000); // Hide after 3 seconds
+
+        // Reset form
         setEditingItem(null);
         setFormData({
           name: '',
@@ -76,11 +84,9 @@ function MenuItems() {
     }));
   };
 
-  // Truncate description to 30 characters
+  // Truncate long descriptions
   const truncateDescription = (description) => {
-    if (!description) {
-      return '';
-    }
+    if (!description) return '';
     if (description.length > 30) {
       return description.slice(0, 30) + '...';
     }
@@ -90,6 +96,13 @@ function MenuItems() {
   return (
     <div className="menu-items-container">
       <h2 className="text-xl font-bold mb-4">Menu Items</h2>
+
+      {successMessage && ( // ✅ Show success message if any
+        <div className="bg-green-200 text-green-800 p-2 rounded mb-4">
+          {successMessage}
+        </div>
+      )}
+
       <div className="menu-items-grid">
         {menuItems.map((item) => (
           <div key={item.itemId} className="menu-item-card">
@@ -99,7 +112,7 @@ function MenuItems() {
                 {expandedDescriptions[item.itemId]
                   ? item.description
                   : truncateDescription(item.description)}
-                {item.description.length > 30 && (
+                {item.description && item.description.length > 30 && (
                   <span
                     className="text-blue-500 cursor-pointer"
                     onClick={() => toggleDescription(item.itemId)}
@@ -111,18 +124,16 @@ function MenuItems() {
               <p>Price: ₹{item.price}</p>
               <p>Category: {item.category}</p>
 
-{item.imageUrl && (
-  <div className="mb-10">
-    <img
-      src={item.imageUrl}
-      alt={item.name}
-      className="menu-item-image rounded-lg"
-      style={{ width: "300px", height: "180px", objectFit: "cover" }}
-    />
-  </div>
-)}
-
-
+              {item.imageUrl && (
+                <div className="mb-10">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="menu-item-image rounded-lg"
+                    style={{ width: "300px", height: "180px", objectFit: "cover" }}
+                  />
+                </div>
+              )}
 
               <div className="mt-10">
                 <button
@@ -131,9 +142,10 @@ function MenuItems() {
                 >
                   Edit
                 </button>
-                </div>
-
+              </div>
             </div>
+
+            {/* If editing, show edit form */}
             {editingItem === item.itemId && (
               <div className="edit-form mt-4">
                 <input

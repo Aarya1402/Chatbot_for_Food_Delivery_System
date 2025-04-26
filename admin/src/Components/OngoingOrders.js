@@ -21,7 +21,9 @@ function OngoingOrders({ onOrderUpdate }) {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.put(`https://chatbot-for-food-delivery-system.onrender.com/orders/${orderId}`, { status: newStatus });
+      console.log(`Updating order ${orderId} to ${newStatus}`);
+      // Update order status in the backend
+      await axios.put(`http://chatbot-for-food-delivery-system.onrender.com/orders/${orderId}/status`, { status: newStatus });
       alert(`Order ${orderId} marked as ${newStatus.toLowerCase()}!`);
       fetchOrders();
       onOrderUpdate(); // Trigger refresh in parent
@@ -46,34 +48,34 @@ function OngoingOrders({ onOrderUpdate }) {
               <span className="font-semibold">Order #{order.orderId}</span> - ₹{order.amount.toFixed(2)}
             </div>
             <div className="flex gap-2">
-            <div className="flex gap-x-4 my-2">
-            <div className="flex space-x-4 my-2">
-            <div className="flex gap-x-4 my-2">
-            <div className="flex items-center space-x-4 my-2">
- 
-    <button 
-      className="px-4 py-2 bg-green-500 text-white"
-      onClick={() => updateOrderStatus(order.orderId, "Completed")}
-    >
-      Complete
-    </button>
-    
-        <button 
-      className="px-4 py-2 bg-red-500 text-white"
-      onClick={() => updateOrderStatus(order.orderId, "Cancelled")}
-    >
-      Cancel
-    </button>
- 
-</div>
+              <div className="flex gap-x-4 my-2">
+                <div className="flex space-x-4 my-2">
+                  <div className="flex gap-x-4 my-2">
+                    <div className="flex items-center space-x-4 my-2">
 
-   
-</div>
+                      <button
+                        className="px-4 py-2 bg-green-500 text-white"
+                        onClick={() => updateOrderStatus(order.orderId, "Completed")}
+                      >
+                        Complete
+                      </button>
+
+                      <button
+                        className="px-4 py-2 bg-red-500 text-white"
+                        onClick={() => updateOrderStatus(order.orderId, "Cancelled")}
+                      >
+                        Cancel
+                      </button>
+
+                    </div>
 
 
-</div>
+                  </div>
 
-</div>
+
+                </div>
+
+              </div>
 
             </div>
           </li>

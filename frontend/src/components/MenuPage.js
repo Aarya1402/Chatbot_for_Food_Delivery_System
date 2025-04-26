@@ -46,14 +46,17 @@ const MenuPage = () => {
         </section>
 
         {/* Right Section: Chatbot */}
-        <aside className="chat-container">
-        
+        <aside className="chat-container">     
           <iframe
             className="chat-bot"
             allow="microphone;"
             src="https://console.dialogflow.com/api-client/demo/embedded/28c02c65-3c22-4efc-a3be-f5af3f5a4885"
             title="Chatbot"
-          ></iframe>
+          ></iframe> 
+          <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+
+          <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+
         </aside>
       </div>
     </div>

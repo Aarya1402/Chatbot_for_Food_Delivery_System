@@ -24,6 +24,7 @@ function AddMenuItemForm() {
     e.preventDefault();
 
     try {
+      console.log("Form data to be sent:", formData); // Log the form data
       await axios.post("https://chatbot-for-food-delivery-system.onrender.com/menu", formData); // Replace with your API endpoint
       alert("Menu item added successfully!");
       setFormData({

@@ -108,6 +108,32 @@ exports.updateOrder = async (req, res) => {
     }
 };
 
+exports.updateOrderStatus = async (req, res) => {
+  const { orderId } = req.params; // assuming orderId is passed as URL param
+  const { status, payStatus } = req.body; // updated fields
+
+  try {
+    // Find the order by orderId and update the status
+    const updatedOrder = await Order.findOneAndUpdate(
+      { orderId }, // search by orderId
+      { 
+        ...(status && { status }),       // only update if provided
+        ...(payStatus && { payStatus })  // only update if provided
+      },
+      { new: true } // return the updated document
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.status(200).json({ message: 'Order status updated successfully', order: updatedOrder });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(400).json({ message: 'Error updating order status', error: error.message });
+  }
+};
+
 // Track an order by ID
 exports.trackOrder = async (req, res) => {
     const { orderId } = req.params;
