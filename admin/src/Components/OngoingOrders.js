@@ -85,7 +85,7 @@ function OngoingOrders({ onOrderUpdate }) {
                 {expandedOrderId === order.orderId && (
                   <div className="mt-2 bg-gray-100 p-3 rounded">
                     {/* <p><strong>User ID:</strong> {order.userId || "Guest"}</p> */}
-                    <p><strong>Payment Status:</strong> {order.payStatus}</p>
+                    {/* <p><strong>Payment Status:</strong> {order.payStatus}</p> */}
                     <p className="mt-2"><strong>Items:</strong></p>
                     <ul className="list-disc pl-5">
                       {order.items && order.items.length > 0 ? (
